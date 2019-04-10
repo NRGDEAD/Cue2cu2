@@ -4,7 +4,7 @@ Cue2cu2 is a Python program to create a CU2 sheet from an existing bin/cue set. 
 ## Status of this program
 Cue2cu2 is experimental, especially in non-compatibility mode (see below).
 There is hardly any error catching, so Python itself will likely throw an error if Cue2cu2 is surprised by something unusual in a cue sheet.
-Thus, use at your own risk. Feel free to report any bugs; The author might try to fix one or two. ;-)
+Thus, use at your own risk. Feel free to report any bugs; the author might try to fix one or two. ;-)
 
 ## Installing
 Once you have Python installed, you just download cue2cu2.py and run it. Maybe put it somewhere within $PATH if you use it often...?
@@ -34,7 +34,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
