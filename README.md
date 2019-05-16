@@ -23,9 +23,9 @@ Multi-bin images, a cue sheet referencing multiple bin files or even Wave, FLAC 
 
 ### Compatibility mode
 By default, Cue2cu2 uses the compatibility mode, and thus, aims to create a CU2 sheet that is identical to what the PSIO System Console would output.
-While the resulting CU2 sheets seem to work fine with the PSIO, they appear to be inconsistent. Each track's starting position is 2 seconds behind the position noted in the original cue sheet, and "trk end" is 6 seconds beyond the bin file's end. Disabling compatibility mode uses the timecodes from the original cue sheet as well as seemingly correct values for size, data1 and trk end. However, as of writing this, it is unconfirmed if/what is the reason behind the timings per PSIO System Console. Thus, the non-compatibility mode is to be treated as experimental and subject to change.
+While the resulting CU2 sheets seem to work fine with the PSIO, they appear to be inconsistent. Each track's starting position is 2 seconds behind the position noted in the original cue sheet, and "trk end" is 6 seconds beyond the bin file's end. Disabling compatibility mode uses the timecodes from the original cue sheet as well as seemingly correct values for size, data1 and trk end. The author has since confirmed with CybDyn that this is indeed expected behaviour by the PSIO System Console. Thus, the non-compatibility mode is to be treated as experimental.
 
-There are two switches to toggle compatibility mode either on or off in case somebody wants to use Cue2cu2 within a script or workflow. Use no switch to get the default behavior - which might change in the future.
+There are two switches to toggle compatibility mode either on or off in case somebody wants to use Cue2cu2 within a script or workflow. Use no switch to get the default behavior - which might change in the future to maintain compatibility with the current version of PSIO System Console.
 
 ## License
 Copyright 2019 NRGDEAD
