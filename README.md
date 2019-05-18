@@ -7,7 +7,7 @@ There is hardly any error catching, so Python itself will likely throw an error 
 Thus, use at your own risk. Feel free to report any bugs; the author might try to fix one or two. ;-)
 
 ## Installing
-Once you have Python installed, you just download cue2cu2.py and run it. Maybe put it somewhere within $PATH if you use it often...?
+Once you have Python installed, you just download cue2cu2.py and run it from the commandline. It might be helpful to put it somewhere within $PATH if it's used often.
 
 ## Usage
 ```
@@ -30,17 +30,13 @@ There are two switches to toggle compatibility mode either on or off in case som
 ## License
 Copyright 2019 NRGDEAD
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and limitations under the License.
 
 ## Trademarks
 CybDyn, PSIO and PSIO System Console are registered(?) trademarks of CybDyn Systems Australia. The author is not affliated with CybDyn Systems Australia.
