@@ -20,8 +20,9 @@
 # limitations under the License.
 
 # Import functions or something?
-import os
 import argparse
+import os
+import sys
 
 # Function to convert timecode/index position to sector count
 def convert_timecode_to_sectors(timecode):
@@ -42,9 +43,19 @@ def convert_sectors_to_timecode(sectors):
 	timecode = str(total_minutes).zfill(2)+":"+str(modulo_seconds).zfill(2)+":"+str(modulo_sectors).zfill(2)
 	return timecode
 
+# Function to get the total runtime timecode for a given filesize
+def convert_bytes_to_sectors(filesize):
+	if filesize % 2352 == 0:
+		return int(int(filesize)/2352)
+	else:
+		error("The filesize of the binary file indicates that this is not a valid image in MODE2/2352")
+
 # Function to get the total runtime timecode for a given file
 def convert_filesize_to_sectors(binaryfile):
-	return int(int(os.path.getsize(binaryfile))/2352)
+	if os.path.exists(binaryfile):
+		return convert_bytes_to_sectors(os.path.getsize(binaryfile))
+	else:
+		error("Cue sheet refers to a binary file, "+binaryfile+", that could not be found")
 
 # Function to add two timecodes together
 def timecode_addition(timecode, offset):
@@ -57,28 +68,46 @@ def timecode_substraction(timecode, offset):
 # Function to throw an error and exit when something went wrong
 def error(message):
 	if message:
-		sys.exit("Cue2cu2 error: "+message)
+		print("Cue2cu2 error: "+message+".", file=sys.stderr)
+		sys.exit(-1)
 	else:
-		sys.exit("Cue2cu2 error.")
+		print("Cue2cu2 error.", file=sys.stderr)
+		sys.exit(-1)
 
 # Parsing arguments with argparse
-parser = argparse.ArgumentParser(description="Cue2cu2 converts a cue sheet to CU2 format.")
+parser = argparse.ArgumentParser(description="Cue2cu2 converts a cue sheet to CU2 format")
 parser.add_argument("--nocompat", action="store_true", help="Disables compatibility mode")
 parser.add_argument("--compat", action="store_true",  help="Enables compatibility mode (default)")
 parser.add_argument("--stdout", action="store_true",  help="Output to stdout instead of a CU2 file matching the binary image file")
+parser.add_argument("-s","--size", type=int, help="Manually specify binary filesize in bytes instead of obtaining it from the binary file")
 parser.add_argument("cuesheet")
 args = parser.parse_args()
-compatibility_mode = bool(True)
+
+# Configure compatibility mode
+compatibility_mode = bool(True) # harcoding the default value
 if args.nocompat:
 	compatibility_mode = bool(False)
 if args.compat:
 	compatibility_mode = bool(True)
+if args.compat == args.nocompat == True:
+	error("Can not enable and disable compatibility mode at the same time, d'uh")
+
+# Should we output to the filesystem or stdout?
 if args.stdout:
 	stdout = bool(True)
 else:
 	stdout = bool(False)
 
-cuesheet = args.cuesheet # Make this a little more handy
+# Do we get the filesize for the binary file from the file listed in the cue sheet or from an argument?
+if args.size:
+	filesize = int(args.size)
+else:
+	filesize = bool(False)
+
+# Make this a little more handy
+cuesheet = args.cuesheet
+
+# Now, onto the actual work
 
 # Copy the cue sheet into a variable so we don't have to re-read it from disk again.
 with open(cuesheet,"r") as cuesheet_file:
@@ -92,6 +121,14 @@ for line in cuesheet_content.splitlines():
 		break
 if cuesheet_mode_valid == False:
 	error("Cue sheet indicates this image is not in MODE2/2352")
+
+# See if this not a multi bin image, but does include exactly one FILE statement
+files = int(0)
+for line in cuesheet_content.splitlines():
+	if "FILE" in line:
+		files += 1
+if not files == int(1):
+	error("The cue sheet is either invalid or part of an image with multiple binary files, which are not supported by this version of Cue2cu2")
 
 # Extract the filename of the main image or binary file
 for line in cuesheet_content.splitlines():
@@ -108,13 +145,17 @@ ntracks = 0
 for line in cuesheet_content.splitlines():
 	if "TRACK" in line:
 		ntracks += 1
-#cuesheet_file.close() # We don't need to read this anymore
 output = output+"ntracks "+str(ntracks)+"\r\n"
 
 # Get the total runtime/size
-size = convert_sectors_to_timecode(convert_filesize_to_sectors(binaryfile))
+if not filesize == bool(False):
+	size = convert_sectors_to_timecode(convert_bytes_to_sectors(filesize))
+else:
+	size = convert_sectors_to_timecode(convert_filesize_to_sectors(binaryfile))
+# Add the two seconds for compatibility if needed
 if compatibility_mode == True:
 	size = timecode_addition(size,"00:02:00")
+
 output = output+"size      "+size+"\r\n"
 
 # Get data1
@@ -131,7 +172,6 @@ for line in cuesheet_content.splitlines():
 		tracks.append(line) # Add them to the array
 
 for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
-	#track_position = tracks[track-1][::-1][:9][::-1][:9] # This was when accessing the cue sheet file rather than copying it into a variable for performance
 	track_position = tracks[track-1][::-1][:8][::-1][:9] # I have no idea what I'm doing
 	if compatibility_mode == True:
 		track_position = timecode_addition(track_position,"00:02:00")

@@ -2,24 +2,31 @@
 Cue2cu2 is a Python program to create a CU2 sheet from an existing bin/cue set. As in a cue sheet with a single accompanying bin file.
 
 ## Status of this program
-Cue2cu2 is experimental, especially in non-compatibility mode (see below).
-There is hardly any error catching, so Python itself will likely throw an error if Cue2cu2 is surprised by something unusual in a cue sheet.
-Thus, use at your own risk. Feel free to report any bugs; the author might try to fix one or two. ;-)
+Cue2cu2 is somewhat experimental.
+There is not too much error catching yet, so Python itself might throw an error if Cue2cu2 is caught off guard by something unusual in a cue sheet.
+You are using this software at your own risk.
+Feel free to report any bugs; the author might try to fix one or two. ;-)
 
 ## Installing
-Once you have Python installed, you just download cue2cu2.py and run it from the commandline. It might be helpful to put it somewhere within $PATH if it's used often.
+Once you have Python installed, download cue2cu2.py or git clone the repository. It might be helpful to put it or a symlink somewhere within $PATH if it's used often.
 
 ## Usage
+To convert a cue sheet, change to the directory of the disc image and run cue2cu2.py with the cue sheet as an argument. For example:
+```
+./cue2cu2.py EURO_DEMO_GERMAN_04.cue
+```
+### Options
 ```
 cue2cu2.py [options] cuesheet
 
-Options:	-h	--help		Show help
-			--compat	Use compatibility mode (default)
-			--nocompat	Don't use compatibility mode
-			--stdout	Don't write a CU2 sheet, echo to stdout instead
+Options:	-h	--help			Show help
+			--compat		Use compatibility mode (default)
+			--nocompat		Don't use compatibility mode
+			--stdout		Don't write a CU2 sheet, echo to stdout instead
+			-s SIZE, --size SIZE	Manually specify filesize of the binary file instead of obtaining it automatically
 ```
 ### Multi-bin images
-Multi-bin images, a cue sheet referencing multiple bin files or even Wave, FLAC or other formats, are not supported at this time. These need to be converted to single-bin images (one cue sheet with one bin file) first. This can be done with a combination of cdemu and cdrdao. Please refer to the documentation of those programs for more information.
+Multi-bin images, a cue sheet referencing multiple bin files or even Wave, FLAC or other formats, are not supported at this time. These need to be converted to single-bin images (one cue sheet with one bin file) first. This can be done with [binmerge](https://github.com/putnam/binmerge) in simple cases or a combination of cdemu and cdrdao in more advanced cases (for example, when using images with FLAC or MP3 audio). Please refer to the documentation of those programs for more information.
 
 ### Compatibility mode
 By default, Cue2cu2 uses the compatibility mode, and thus, aims to create a CU2 sheet that is identical to what the PSIO System Console would output.
