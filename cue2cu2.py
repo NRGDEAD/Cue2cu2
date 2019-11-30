@@ -43,6 +43,22 @@ def convert_sectors_to_timecode(sectors):
 	timecode = str(total_minutes).zfill(2)+":"+str(modulo_seconds).zfill(2)+":"+str(modulo_sectors).zfill(2)
 	return timecode
 
+# Function to convert sectors to timcode - but use MM:SS-1:75 instead of MM:SS:00. Thanks bikerspade!
+def convert_sectors_to_timecode_with_alternative_notation(sectors):
+	total_seconds = int(int(sectors)/75)
+	modulo_sectors = int(int(sectors)%75)
+	total_minutes = int(total_seconds/60)
+	modulo_seconds = int(total_seconds%60)
+	if modulo_sectors == 0:
+		modulo_sectors = int(75)
+		if modulo_seconds != 0:
+			modulo_seconds = modulo_seconds - 1
+		else:
+			modulo_seconds = 59
+			total_minutes = total_minutes - 1
+	timecode = str(total_minutes).zfill(2)+":"+str(modulo_seconds).zfill(2)+":"+str(modulo_sectors).zfill(2)
+	return timecode
+
 # Function to get the total runtime timecode for a given filesize
 def convert_bytes_to_sectors(filesize):
 	if filesize % 2352 == 0:
@@ -174,12 +190,17 @@ for line in cuesheet_content.splitlines():
 for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 	track_position = tracks[track-1][::-1][:8][::-1][:9] # I have no idea what I'm doing
 	if compatibility_mode == True:
+		# Add the famous two second offset for PSIO
 		track_position = timecode_addition(track_position,"00:02:00")
+		# And convert that to using the alternative notation used by Systems Console - seemingly only on the tracks, not data1 et cetera.
+		track_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(track_position)) # Those are function names, eh?
 	output = output+"track"+str(track).zfill(2)+"   "+track_position+"\r\n"
 
 # Add the end for the last track.
 if compatibility_mode == True:
 	track_end = timecode_addition(size,"00:04:00")
+	# Aaand the notation fix.
+	track_end = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(track_end))
 else:
 	track_end = size
 output = output+"\r\ntrk end   "+track_end
