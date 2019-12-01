@@ -24,15 +24,21 @@ Options:	-h	--help			Show help
 			--nocompat		Don't use compatibility mode
 			--stdout		Don't write a CU2 sheet, echo to stdout instead
 			-s SIZE, --size SIZE	Manually specify filesize of the binary file instead of obtaining it automatically
+			-o OFFSET, --offset OFFSET
+                        Specify timecode offset for tracks and track end.
+			Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74).
+			Example: -o=-00:13:37. Note: resulting output range is limited to 00:00:00 - 99:59:74
 ```
 ### Multi-bin images
 Multi-bin images, a cue sheet referencing multiple bin files or even Wave, FLAC or other formats, are not supported at this time. These need to be converted to single-bin images (one cue sheet with one bin file) first. This can be done with [binmerge](https://github.com/putnam/binmerge) in simple cases or a combination of cdemu and cdrdao in more advanced cases (for example, when using images with FLAC or MP3 audio). Please refer to the documentation of those programs for more information.
 
-### Compatibility mode
-By default, Cue2cu2 uses the compatibility mode, and thus, aims to create a CU2 sheet that is identical to what the PSIO System Console would output.
+### Compatibility
+By default, Cue2cu2 uses the compatibility mode, and thus, aims to create a CU2 sheet that is bit identical to what the PSIO System Console would output.
 While the resulting CU2 sheets seem to work fine with the PSIO, they appear to be inconsistent. Each track's starting position is 2 seconds behind the position noted in the original cue sheet, and "trk end" is 6 seconds beyond the bin file's end. Disabling compatibility mode uses the timecodes from the original cue sheet as well as seemingly correct values for size, data1 and trk end. The author has since confirmed with CybDyn that this is indeed expected behaviour by the PSIO System Console. Thus, the non-compatibility mode is to be treated as experimental.
 
 There are two switches to toggle compatibility mode either on or off in case somebody wants to use Cue2cu2 within a script or workflow. Use no switch to get the default behavior - which might change in the future to maintain compatibility with the current version of PSIO System Console.
+
+Furthermore, it is now possible to apply an additional offset. This will neither disable nor enable compatibility mode, but is applied after (not) applying the compatibility offsets to each track and the track end value. This option is for user experiments.
 
 ## License
 Copyright 2019 NRGDEAD
