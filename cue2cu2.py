@@ -4,6 +4,7 @@
 # Originally written by NRGDEAD in 2019. Use at your own risk.
 # This program was written based on my web research and my reverse engineering of the CU2 format.
 # Sorry, this is my first Python thingie. I have no idea what I'm doing. Thanks.
+# WWW: https://github.com/NRGDEAD/Cue2cu2
 
 # Copyright 2019 NRGDEAD
 # 
@@ -23,6 +24,7 @@
 import argparse
 import os
 import sys
+import re
 
 # Function to convert timecode/index position to sector count
 def convert_timecode_to_sectors(timecode):
@@ -64,22 +66,28 @@ def convert_bytes_to_sectors(filesize):
 	if filesize % 2352 == 0:
 		return int(int(filesize)/2352)
 	else:
-		error("The filesize of the binary file indicates that this is not a valid image in MODE2/2352")
+		error("The filesize of the binary file or --size parameter indicates that this is not a valid image in MODE2/2352")
 
 # Function to get the total runtime timecode for a given file
 def convert_filesize_to_sectors(binaryfile):
 	if os.path.exists(binaryfile):
 		return convert_bytes_to_sectors(os.path.getsize(binaryfile))
 	else:
-		error("Cue sheet refers to a binary file, "+binaryfile+", that could not be found")
+		error("Cue sheet refers to a binary file, "+binaryfile+", that could not be found. To manually override, use the --size parameter. See --help.")
 
 # Function to add two timecodes together
 def timecode_addition(timecode, offset):
-	return convert_sectors_to_timecode(convert_timecode_to_sectors(timecode)+convert_timecode_to_sectors(offset))
+	result = convert_timecode_to_sectors(timecode)+convert_timecode_to_sectors(offset)
+	if result > int("449999"):
+		result = int("449999") 
+	return convert_sectors_to_timecode(result)
 
 # Function to substract timecodes
 def timecode_substraction(timecode, offset):
-	return convert_sectors_to_timecode(convert_timecode_to_sectors(timecode)-convert_timecode_to_sectors(offset))
+	result = convert_timecode_to_sectors(timecode)-convert_timecode_to_sectors(offset)
+	if result < int("0"):
+		result = int("0") 
+	return convert_sectors_to_timecode(result)
 
 # Function to throw an error and exit when something went wrong
 def error(message):
@@ -92,10 +100,11 @@ def error(message):
 
 # Parsing arguments with argparse
 parser = argparse.ArgumentParser(description="Cue2cu2 converts a cue sheet to CU2 format")
-parser.add_argument("--nocompat", action="store_true", help="Disables compatibility mode")
-parser.add_argument("--compat", action="store_true",  help="Enables compatibility mode (default)")
+parser.add_argument("--nocompat", action="store_true", help="Disables compatibility mode, produces a CU2 sheet without 2/4 seconds offset. Will likely not work correctly on PSIO as of 2019")
+parser.add_argument("--compat", action="store_true",  help="Enables compatibility mode, aims to be bit-identical to Systems Console output for PSIO (default)")
 parser.add_argument("--stdout", action="store_true",  help="Output to stdout instead of a CU2 file matching the binary image file")
 parser.add_argument("-s","--size", type=int, help="Manually specify binary filesize in bytes instead of obtaining it from the binary file")
+parser.add_argument("-o","--offset", type=str, help="Specify timecode offset for tracks and track end. Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74). Example: -o=-00:13:37. Note: resulting output range is limited to 00:00:00 - 99:59:74")
 parser.add_argument("cuesheet")
 args = parser.parse_args()
 
@@ -119,6 +128,26 @@ if args.size:
 	filesize = int(args.size)
 else:
 	filesize = bool(False)
+
+# Do we want to apply an offset to the timecodes?
+if args.offset:
+	offset_supplied = bool(True)
+	# Is this a valid timecode with optional sign?
+	if re.compile("^[+-]{0,1}[0-9]{2}:[0-5][0-9]:[0-7][0-9]$").match(args.offset) and int(args.offset[::-1][0:2][::-1]) <= int("74"):
+		# Do we add or substract the timecode?
+		if args.offset[0] == str("+"):
+			offset_mode_is_add = bool(True)
+			offset_timecode = str(args.offset[1:9])
+		elif re.compile("^[0-9]$").match(args.offset[0]):
+			offset_mode_is_add = bool(True)
+			offset_timecode = str(args.offset)
+		elif args.offset[0] == str("-"):
+			offset_mode_is_add = bool(False)
+			offset_timecode = str(args.offset[1:9])
+	else:
+		error("Supplied offset is invalid. Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74)")
+else:
+	offset_supplied = bool(False)
 
 # Make this a little more handy
 cuesheet = args.cuesheet
@@ -190,19 +219,27 @@ for line in cuesheet_content.splitlines():
 for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 	track_position = tracks[track-1][::-1][:8][::-1][:9] # I have no idea what I'm doing
 	if compatibility_mode == True:
-		# Add the famous two second offset for PSIO
-		track_position = timecode_addition(track_position,"00:02:00")
-		# And convert that to using the alternative notation used by Systems Console - seemingly only on the tracks, not data1 et cetera.
-		track_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(track_position)) # Those are function names, eh?
+		# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
+		track_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(track_position,"00:02:00")))
+	# Apply offset if supplied
+	if offset_supplied == bool(True):
+		if offset_mode_is_add == bool(True):
+			track_position = timecode_addition(track_position, offset_timecode)
+		elif offset_mode_is_add == bool(False):
+			track_position = timecode_substraction(track_position, offset_timecode)
 	output = output+"track"+str(track).zfill(2)+"   "+track_position+"\r\n"
 
-# Add the end for the last track.
+# Add the end for the last track
 if compatibility_mode == True:
-	track_end = timecode_addition(size,"00:04:00")
-	# Aaand the notation fix.
-	track_end = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(track_end))
+	track_end = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(size,"00:04:00")))
 else:
 	track_end = size
+# Apply offset if supplied
+if offset_supplied == bool(True):
+	if offset_mode_is_add == bool(True):
+		track_end = timecode_addition(track_end, offset_timecode)
+	elif offset_mode_is_add == bool(False):
+		track_end = timecode_substraction(track_end, offset_timecode)
 output = output+"\r\ntrk end   "+track_end
 
 
@@ -213,6 +250,6 @@ if stdout == True:
 	print(output)
 else:
 	cu2sheet = binaryfile[::-1][4:][::-1]+".cu2"
-	cu2file = open(cu2sheet,"w")
-	cu2file.write(output)
+	cu2file = open(cu2sheet,"wb")
+	cu2file.write(output.encode())
 	cu2file.close
