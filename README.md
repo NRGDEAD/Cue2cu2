@@ -23,7 +23,7 @@ Options:	-h	--help			Show help
 			--compat		Use compatibility mode (default)
 			--nocompat		Don't use compatibility mode
 			--stdout		Don't write a CU2 sheet, echo to stdout instead
-			-s SIZE, --size SIZE	Manually specify filesize of the binary file instead of obtaining it automatically
+			-s SIZE, --size SIZE	Manually specify binary file size instead of obtaining it automatically
 			-o OFFSET, --offset OFFSET
                         Specify timecode offset for tracks and track end.
 			Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74).
