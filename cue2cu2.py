@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 
 # cue2cu2 - converts a cue sheet to CU2 format.
 # Originally written by NRGDEAD in 2019. Use at your own risk.
