@@ -39,28 +39,28 @@ optional arguments:
 ```
 
 ### Output and compatibility
-## Modes
-# Compatibility mode
+#### Modes
+##### Compatibility mode
 Cue2cu2 aims to create a CU2 sheet that is bit identical to what the PSIO System Console would output in the given CU2 format revision.
-# Non-compatibility mode
+##### Non-compatibility mode
 Cue2cu2 does not shift the tracks, but instead uses the cue sheets' timecodes unaltered. The timecode notation is different when ending in a full second: 00:47:00 instead of 00:46:75.
 This mode will probably not work correctly on either PSIO firmware revision as of yet, but is included for user experiments.
-# Selecting a mode
+##### Selecting a mode
 There are two switches to toggle compatibility mode either on or off in case somebody wants to use Cue2cu2 within a script or workflow. Use no switch to get the default behavior - which might change in the future to maintain compatibility with the current version of PSIO System Console.
-## CU2 file format revisions
+#### CU2 file format revisions
 As of Systems Console 2.8, a new revision of the CU2 format has been introduced. This includes a new string for the pregaps, while still being shifted +2 seconds, apparently for having the newer firmware be able to read old format CU2s without much fuss.
-# 1 - Systems Console up to 2.4 (and sort of 2.5 to 2.7)
+##### 1 - Systems Console up to 2.4 (and sort of 2.5 to 2.7)
 The tracks are shifted +2 seconds and the track end is shifted an additional +2 for pregaps and lead-out respectively. Always assumes 2 second pregaps, which is inaccurate for a few titles.
-# 2 - Systems Console 2.8 and probably later
+##### 2 - Systems Console 2.8 and probably later
 Same as 1, but has an additional line per track for the pregaps and the data track is also being shifted. Dynamic pregap length, as per CU2 sheet.
 
-## Offset
+### Offset
 It is possible to apply an additional offset. This will neither disable nor enable compatibility mode, but is applied after (not) applying the compatibility offsets to each audio track start, pregap and the last track's end values. This option is for user experiments as well.
 
 ### Multi-bin images
 Multi-bin images, a cue sheet referencing multiple bin files or even Wave, FLAC or other formats, are not supported. These need to be converted to monolithic, or single-bin, images first. This can be done with [binmerge](https://github.com/putnam/binmerge) in most simple cases or a combination of cdemu and cdrdao in more advanced cases (for example, when using images with FLAC or MP3 audio). Please refer to the documentation of those programs for more information.
 
-### License
+## License
 Copyright 2019 NRGDEAD
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
@@ -71,5 +71,5 @@ You may obtain a copy of the License at
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and limitations under the License.
 
-### Trademarks
+## Trademarks
 CybDyn, PSIO and PSIO System Console are registered(?) trademarks of CybDyn Systems Australia. The author is not affliated with CybDyn Systems Australia.
