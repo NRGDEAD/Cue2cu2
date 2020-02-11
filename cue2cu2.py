@@ -102,7 +102,7 @@ def error(message):
 parser = argparse.ArgumentParser(description="Cue2cu2 converts a cue sheet to CU2 format")
 parser.add_argument("-nc","--nocompat", action="store_true", help="Disables compatibility mode, produces a CU2 sheet without 2/4 seconds offset. Will likely not work correctly on PSIO as of 2019")
 parser.add_argument("-c","--compat", action="store_true",  help="Enables compatibility mode, aims to be bit-identical to what Systems Console would produce (default)")
-parser.add_argument("-1","--stdout", action="store_true",  help="Output to stdout instead of a CU2 file matching the binary image file")
+parser.add_argument("-1","--stdout", action="store_true",  help="Output to stdout instead of a CU2 file named after the binary image file")
 parser.add_argument("-s","--size", type=int, help="Manually specify binary filesize in bytes instead of obtaining it from the binary file")
 parser.add_argument("-f","--format", type=int, help="Specify CU2 format revision: 1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7), 2 for 2.8 and probably later versions (default: 2)")
 parser.add_argument("-o","--offset", type=str, help="Specify timecode offset for tracks and track end. Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74). Example: -o=-00:13:37. Note: resulting output range is limited to 00:00:00 - 99:59:74")
@@ -110,13 +110,23 @@ parser.add_argument("cuesheet")
 args = parser.parse_args()
 
 # Configure compatibility mode
-compatibility_mode = bool(True) # harcoding the default value
+compatibility_mode = bool(True) # Default value
 if args.nocompat:
 	compatibility_mode = bool(False)
 if args.compat:
 	compatibility_mode = bool(True)
 if args.compat == args.nocompat == True:
 	error("Can not enable and disable compatibility mode at the same time, d'uh")
+
+# Configure CU2 format revision
+format_revision = int(2) # Default value
+if args.format:
+	if args.format == int(1):
+		format_revision = int(1)
+	elif args.format == int(2):
+		format_revision = int(2)
+	else:
+		error("CU2 format revision must be either 1 or 2")
 
 # Should we output to the filesystem or stdout?
 if args.stdout:
@@ -155,29 +165,29 @@ cuesheet = args.cuesheet
 
 # Now, onto the actual work
 
-# Copy the cue sheet into a variable so we don't have to re-read it from disk again.
+# Copy the cue sheet into an array so we don't have to re-read it from disk again and can navigate it easily
 with open(cuesheet,"r") as cuesheet_file:
-	cuesheet_content = cuesheet_file.read()
+	cuesheet_content = cuesheet_file.read().splitlines()
 
 # Check the cue sheet if the image is supposed to be in Mode 2 with 2352 bytes per sector
-for line in cuesheet_content.splitlines():
+for line in cuesheet_content:
 	cuesheet_mode_valid = bool(False)
 	if "MODE2/2352" in line:
 		cuesheet_mode_valid = bool(True)
 		break
-if cuesheet_mode_valid == False:
+if cuesheet_mode_valid == False: # If it's not, we can't continue
 	error("Cue sheet indicates this image is not in MODE2/2352")
 
-# See if this not a multi bin image, but does include exactly one FILE statement
+# Make sure this not a multi bin image, but does include exactly one FILE statement
 files = int(0)
-for line in cuesheet_content.splitlines():
+for line in cuesheet_content:
 	if "FILE" in line:
 		files += 1
 if not files == int(1):
 	error("The cue sheet is either invalid or part of an image with multiple binary files, which are not supported by this version of Cue2cu2")
 
 # Extract the filename of the main image or binary file
-for line in cuesheet_content.splitlines():
+for line in cuesheet_content:
 	if "FILE" in line and "BINARY" in line:
 		binaryfile = str(line)[6:][::-1][8:][::-1]
 		break
@@ -188,7 +198,7 @@ output = str()
 
 # Get number of tracks from cue sheet
 ntracks = 0
-for line in cuesheet_content.splitlines():
+for line in cuesheet_content:
 	if "TRACK" in line:
 		ntracks += 1
 output = output+"ntracks "+str(ntracks)+"\r\n"
@@ -199,26 +209,52 @@ if not filesize == bool(False):
 else:
 	size = convert_sectors_to_timecode(convert_filesize_to_sectors(binaryfile))
 # Add the two seconds for compatibility if needed
-if compatibility_mode == True:
+if compatibility_mode == True and format_revision == int(1):
 	size = timecode_addition(size,"00:02:00")
 
 output = output+"size      "+size+"\r\n"
 
-# Get data1
-# This was, in every CU2 sheet I looked at, set to two seconds. I have no idea how else this is obtained, so:
+# Get data1 - well, this is always the same for our kind of disc images, so...
+# At some point I should do this the proper way and grab it from Track 1.
 data1 = "00:00:00"
 if compatibility_mode == True:
 	data1 = timecode_addition(data1,"00:02:00")
+# Apply offset if supplied
+if offset_supplied == bool(True):
+	if offset_mode_is_add == bool(True):
+		data1 = timecode_addition(data1, offset_timecode)
+	elif offset_mode_is_add == bool(False):
+		data1 = timecode_substraction(data1, offset_timecode)
 output = output+"data1     "+data1+"\r\n"
 
-# Get the tracks lengths
-tracks = [] # Create empty array
-for line in cuesheet_content.splitlines():
-	if "INDEX 01" in line: # Look for the lines with INDEX 01, then
-		tracks.append(line) # Add them to the array
-
+# Get the track and pregap lengths
 for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
-	track_position = tracks[track-1][::-1][:8][::-1][:9] # I have no idea what I'm doing
+	# Find current track number in cuesheet_content
+	current_track_in_cuesheet = -1;
+	for line in cuesheet_content:
+		current_track_in_cuesheet += 1
+		if "TRACK "+str(track).zfill(2) in line:
+			break
+	# See if the next line is index 00, and if so, get and output the pregap if the CU2 format requires it
+	if "INDEX 00" in cuesheet_content[current_track_in_cuesheet+1] and format_revision == int(2):
+		pregap_position = cuesheet_content[current_track_in_cuesheet+1][::-1][:8][::-1][:9]
+		if compatibility_mode == True:
+			# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
+			pregap_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(pregap_position,"00:02:00")))
+		# Apply offset if supplied
+		if offset_supplied == bool(True):
+			if offset_mode_is_add == bool(True):
+				pregap_position = timecode_addition(track_position, offset_timecode)
+			elif offset_mode_is_add == bool(False):
+				pregap_position = timecode_substraction(track_position, offset_timecode)
+		output = output+"pregap"+str(track).zfill(2)+"  "+pregap_position+"\r\n"
+	# Else-If is it index 01? If so, output track start, or get it from the following line
+	if "INDEX 01" in cuesheet_content[current_track_in_cuesheet+1]:
+		track_position = cuesheet_content[current_track_in_cuesheet+1][::-1][:8][::-1][:9] # I have no idea what I'm doing
+	elif "INDEX 01" in cuesheet_content[current_track_in_cuesheet+2]:
+		track_position = cuesheet_content[current_track_in_cuesheet+2][::-1][:8][::-1][:9]
+	else:
+		error("Could not find starting position (index 01) for track "+track)
 	if compatibility_mode == True:
 		# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
 		track_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(track_position,"00:02:00")))
@@ -231,8 +267,10 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 	output = output+"track"+str(track).zfill(2)+"   "+track_position+"\r\n"
 
 # Add the end for the last track
-if compatibility_mode == True:
+if compatibility_mode == True and format_revision == int(1):
 	track_end = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(size,"00:04:00")))
+elif compatibility_mode == True and format_revision == int(2):
+	track_end = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(size,"00:02:00")))
 else:
 	track_end = size
 # Apply offset if supplied
