@@ -120,13 +120,13 @@ if args.compat == args.nocompat == True:
 
 # Configure CU2 format revision
 format_revision = int(2) # Default value
-if args.format:
+if args.format or str(args.format) == "0":
 	if args.format == int(1):
 		format_revision = int(1)
 	elif args.format == int(2):
 		format_revision = int(2)
 	else:
-		error("CU2 format revision must be either 1 or 2")
+		error("CU2 format revision must be either 1 or 2. Supplied: "+str(args.format))
 
 # Should we output to the filesystem or stdout?
 if args.stdout:
