@@ -3,7 +3,7 @@ Cue2cu2 is a free software, open source Python program to create a CU2 sheet fro
 ## Status of this program
 Cue2cu2 is somewhat experimental.
 There is not too much error catching yet, so Python itself might throw an error if Cue2cu2 is caught off guard by something unusual in a cue sheet.
-Please report such cases with the cue sheet attached either through [GitHub](https://github.com/NRGDEAD/Cue2cu2) or [CybDyn forum](https://www.cybdyn-systems.com.au/forum/viewtopic.php?f=17&t=1760).
+Please report such cases with the cue sheet attached either through [GitHub](https://github.com/NRGDEAD/Cue2cu2) or [CybDyn forum](https://www.cybdyn-systems.com.au/forum/viewtopic.php?f=17&t=1760).\
 You are using this software at your own risk.
 ## Installing
 Once you have Python installed, download cue2cu2.py or git clone the repository. It might be helpful to put it or a symlink somewhere within $PATH if it's used often.
@@ -31,13 +31,13 @@ Output to stdout instead of a CU2 file named after the binary image file
 #### -s SIZE, --size SIZE
 Manually specify binary filesize in bytes instead of obtaining it from the binary file
 #### -f FORMAT, --format FORMAT
-Specify CU2 format revision:
-1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7)
+Specify CU2 format revision:\
+1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7)\
 2 for 2.8 and probably later versions (default)
 #### -o OFFSET, --offset OFFSET
-Specify timecode offset for tracks and track end.
-Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74).
-Example:
+Specify timecode offset for tracks and track end.\
+Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74).\
+Example:\
 ```
 -o=-00:13:37
 ```
@@ -47,17 +47,17 @@ Note: resulting output range is limited to 00:00:00 - 99:59:74 and will be clipp
 #### Compatibility mode
 Cue2cu2 aims to create a CU2 sheet that is bit identical to what the PSIO System Console would output in the given CU2 format revision. This is the default mode, which should be used in virtually all cases.
 #### Non-compatibility mode
-Cue2cu2 does not correct the track position timecodes's offsets, but instead uses the cue sheets' timecodes unaltered.
-The timecode notation is different when ending in a full second: 00:47:00 instead of 00:46:75.
-The last line has a CRLF line terminator.
+Cue2cu2 does not correct the track position timecodes's offsets, but instead uses the cue sheets' timecodes unaltered.\
+The timecode notation is different when ending in a full second: 00:47:00 instead of 00:46:75.\
+The last line has a CRLF line terminator.\
 This mode will probably not work correctly on either PSIO firmware revision as of yet, and should usually not be used. It is included for user experiments.
 #### Selecting a mode
 There are two switches to toggle compatibility mode either on or off in case somebody wants to use Cue2cu2 within a script or workflow. Using neither will default to compatibility mode.
 ### Offset
 It is possible to apply an additional offset. This will neither disable nor enable compatibility mode, but is applied after applying the compatibility offset correction to each audio track start, pregap and the last track's end values. This option is for user experiments as well.
 ### The CU2 Format
-The CU2 format was designed by CybDyn Systems specifically for use with the PSIO. The advantages over cue sheets from the PSIO's perspective are a simpler file structure and less format dialects.
-A key difference is that with cue sheets, timecode 00:00:00 refers to the first position after the lead-in/TOC, which is two seconds or 150 sectors long. While with the CU2 format, it refers to the absolute first sector. Thus, at first glance, it appears that CU2 sheets are shifted +2 seconds. This is not the case; both cue and CU2 sheet notations refer to the same physical sectors.
+The CU2 format was designed by CybDyn Systems specifically for use with the PSIO. The advantages over cue sheets from the PSIO's perspective are a simpler file structure and less format dialects.\
+A key difference is that with cue sheets, timecode 00:00:00 refers to the first position after the lead-in/TOC, which is two seconds or 150 sectors long. While with the CU2 format, it refers to the absolute first sector. Thus, at first glance, it appears that CU2 sheets are shifted +2 seconds. This is not the case; both cue and CU2 sheet notations refer to the same physical sectors.\
 The track end includes an additional two seconds for the lead-out.
 #### Revision 1 - Systems Console up to 2.4 (and sort of 2.5 to 2.7)
 The track end is shifted an additional +2 for pregaps and lead-out respectively. With this format, the PSIO always assumes 2 second pregaps, which is inaccurate for a few titles.
