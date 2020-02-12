@@ -100,7 +100,7 @@ def error(message):
 
 # Parsing arguments with argparse
 parser = argparse.ArgumentParser(description="Cue2cu2 converts a cue sheet to CU2 format")
-parser.add_argument("-nc","--nocompat", action="store_true", help="Disables compatibility mode, produces a CU2 sheet without 2/4 seconds offset. Will likely not work correctly on PSIO as of 2019")
+parser.add_argument("-nc","--nocompat", action="store_true", help="Disables compatibility mode, produces a CU2 sheet without offset correction. Included for user experiments")
 parser.add_argument("-c","--compat", action="store_true",  help="Enables compatibility mode, aims to be bit-identical to what Systems Console would produce (default)")
 parser.add_argument("-1","--stdout", action="store_true",  help="Output to stdout instead of a CU2 file named after the binary image file")
 parser.add_argument("-s","--size", type=int, help="Manually specify binary filesize in bytes instead of obtaining it from the binary file")
