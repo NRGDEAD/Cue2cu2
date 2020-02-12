@@ -37,7 +37,7 @@ Specify CU2 format revision:\
 #### -o OFFSET, --offset OFFSET
 Specify timecode offset for tracks and track end.\
 Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74).\
-Example:\
+Example:
 ```
 -o=-00:13:37
 ```
