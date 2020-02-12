@@ -19,7 +19,7 @@ If you cloned Cue2cu2 to it's own directory in your home directory on Linux/Mac,
 cue2cu2.py [options] cuesheet
 ```
 
-## Optional arguments:
+## Optional arguments
 #### -h, --help
 show a help message and exit.
 #### -nc, --nocompat
