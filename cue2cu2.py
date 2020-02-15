@@ -6,7 +6,7 @@
 # Sorry, this is my first Python thingie. I have no idea what I'm doing. Thanks.
 # WWW: https://github.com/NRGDEAD/Cue2cu2
 
-# Copyright 2019 NRGDEAD
+# Copyright 2019-2020 NRGDEAD
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
