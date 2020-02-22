@@ -199,7 +199,7 @@ output = str()
 # Get number of tracks from cue sheet
 ntracks = 0
 for line in cuesheet_content:
-	if "TRACK" in line:
+	if re.compile(".*[Tt][Rr][Aa][Cc][Kk].*").match(line):
 		ntracks += 1
 output = output+"ntracks "+str(ntracks)+"\r\n"
 
@@ -233,10 +233,10 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 	current_track_in_cuesheet = -1;
 	for line in cuesheet_content:
 		current_track_in_cuesheet += 1
-		if "TRACK "+str(track).zfill(2) in line:
+		if re.compile(".*[Tt][Rr][Aa][Cc][Kk] 0?"+str(track)+".*").match(line):
 			break
 	# See if the next line is index 00, and if so, get and output the pregap if the CU2 format requires it
-	if "INDEX 00" in cuesheet_content[current_track_in_cuesheet+1] and format_revision == int(2):
+	if re.compile(".*[Ii][Nn][Dd][Ee][Xx] 0?0.*").match(cuesheet_content[current_track_in_cuesheet+1]) and format_revision == int(2):
 		pregap_position = cuesheet_content[current_track_in_cuesheet+1][::-1][:8][::-1][:9]
 		if compatibility_mode == True:
 			# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
@@ -248,13 +248,15 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 			elif offset_mode_is_add == bool(False):
 				pregap_position = timecode_substraction(track_position, offset_timecode)
 		output = output+"pregap"+str(track).zfill(2)+"  "+pregap_position+"\r\n"
+	elif format_revision == int(2):
+		error("Could not find pregap position (index 00) for track "+str(track))
 	# Else-If is it index 01? If so, output track start, or get it from the following line
-	if "INDEX 01" in cuesheet_content[current_track_in_cuesheet+1]:
+	if re.compile(".*[Ii][Nn][Dd][Ee][Xx] 0?1.*").match(cuesheet_content[current_track_in_cuesheet+1]):
 		track_position = cuesheet_content[current_track_in_cuesheet+1][::-1][:8][::-1][:9] # I have no idea what I'm doing
-	elif "INDEX 01" in cuesheet_content[current_track_in_cuesheet+2]:
+	elif re.compile(".*[Ii][Nn][Dd][Ee][Xx] 0?1.*").match(cuesheet_content[current_track_in_cuesheet+2]):
 		track_position = cuesheet_content[current_track_in_cuesheet+2][::-1][:8][::-1][:9]
 	else:
-		error("Could not find starting position (index 01) for track "+track)
+		error("Could not find starting position (index 01) for track "+str(track))
 	if compatibility_mode == True:
 		# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
 		track_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(track_position,"00:02:00")))
