@@ -166,8 +166,12 @@ cuesheet = args.cuesheet
 # Now, onto the actual work
 
 # Copy the cue sheet into an array so we don't have to re-read it from disk again and can navigate it easily
-with open(cuesheet,"r") as cuesheet_file:
-	cuesheet_content = cuesheet_file.read().splitlines()
+try:
+	with open(cuesheet,"r") as cuesheet_file:
+		cuesheet_content = cuesheet_file.read().splitlines()
+		cuesheet_file.close
+except:
+	error("Could not open "+str(cuesheet))
 
 # Check the cue sheet if the image is supposed to be in Mode 2 with 2352 bytes per sector
 for line in cuesheet_content:
@@ -291,6 +295,9 @@ if stdout == True:
 	print(output)
 else:
 	cu2sheet = binaryfile[::-1][4:][::-1]+".cu2"
-	cu2file = open(cu2sheet,"wb")
-	cu2file.write(output.encode())
-	cu2file.close
+	try:
+		cu2file = open(cu2sheet,"wb")
+		cu2file.write(output.encode())
+		cu2file.close
+	except:
+		error("Could not write to "+str(cu2sheet))
