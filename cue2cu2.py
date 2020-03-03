@@ -45,7 +45,7 @@ def convert_sectors_to_timecode(sectors):
 	timecode = str(total_minutes).zfill(2)+":"+str(modulo_seconds).zfill(2)+":"+str(modulo_sectors).zfill(2)
 	return timecode
 
-# Function to convert sectors to timcode - but use MM:SS-1:75 instead of MM:SS:00. Thanks bikerspade!
+# Function to convert sectors to timcode - but use MM:SS-1:75 instead of MM:SS:00. Thanks for finding that oddity, bikerspade!
 def convert_sectors_to_timecode_with_alternative_notation(sectors):
 	total_seconds = int(int(sectors)/75)
 	modulo_sectors = int(int(sectors)%75)
@@ -176,7 +176,7 @@ except:
 # Check the cue sheet if the image is supposed to be in Mode 2 with 2352 bytes per sector
 for line in cuesheet_content:
 	cuesheet_mode_valid = bool(False)
-	if "MODE2/2352" in line:
+	if re.compile(".*[Mm][Oo][Dd][Ee]2/2352.*").match(line):
 		cuesheet_mode_valid = bool(True)
 		break
 if cuesheet_mode_valid == False: # If it's not, we can't continue
@@ -185,16 +185,18 @@ if cuesheet_mode_valid == False: # If it's not, we can't continue
 # Make sure this not a multi bin image, but does include exactly one FILE statement
 files = int(0)
 for line in cuesheet_content:
-	if "FILE" in line:
+	if re.compile("[ \t]*[Ff][Ii][Ll][Ee].*").match(line):
 		files += 1
 if not files == int(1):
 	error("The cue sheet is either invalid or part of an image with multiple binary files, which are not supported by this version of Cue2cu2")
 
 # Extract the filename of the main image or binary file
 for line in cuesheet_content:
-	if "FILE" in line and "BINARY" in line:
+	if re.compile("[ \t]*[Ff][Ii][Ll][Ee].*[Bb][Ii][Nn][Aa][Rr][Yy].*").match(line):
 		binaryfile = str(line)[6:][::-1][8:][::-1]
 		break
+	else:
+		error("Could not find binary file")
 
 # Now obtain the variables to be used for the output and add them to said output
 
@@ -203,7 +205,7 @@ output = str()
 # Get number of tracks from cue sheet
 ntracks = 0
 for line in cuesheet_content:
-	if re.compile(".*[Tt][Rr][Aa][Cc][Kk].*").match(line):
+	if re.compile("[ \t]*[Tt][Rr][Aa][Cc][Kk].*").match(line) and not re.compile("[ \t]*[Ff][Ii][Ll][Ee].*[Tt][Rr][Aa][Cc][Kk].*").match(line): # Thanks for finding that bug, staticanime!
 		ntracks += 1
 output = output+"ntracks "+str(ntracks)+"\r\n"
 
