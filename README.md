@@ -1,9 +1,8 @@
 # Cue2cu2
 Cue2cu2 is a free software, open source Python program to create a CU2 sheet from an existing, monolithic bin/cue set for use with CybDyn Systems' PSIO.
 ## Status of this program
-Cue2cu2 is somewhat experimental.
-There is not too much error catching yet, so Python itself might throw an error if Cue2cu2 is caught off guard by something unusual in a cue sheet.
-Please report such cases with the cue sheet attached either through [GitHub](https://github.com/NRGDEAD/Cue2cu2) or the [CybDyn forum](https://www.cybdyn-systems.com.au/forum/viewtopic.php?f=17&t=1760).\
+After almost a year in the wild and various bug fixes, Cue2cu2 can be considered stable. Semi-automated testing with various selected cue sheets, including a special stress test cue sheet with many quirks at once ensure that each release can at least handle what has been encountered so far.
+While the most common errors now should produce an individual error message explaining what went wrong, there might still be cases where Python itself throws an error. Please report such cases with the cue sheet attached either through [GitHub](https://github.com/NRGDEAD/Cue2cu2) or the [CybDyn forum](https://www.cybdyn-systems.com.au/forum/viewtopic.php?f=17&t=1760).\
 You are using this software at your own risk.
 ## Installing
 Once you have Python installed, download cue2cu2.py or git clone the repository. It might be helpful to put it or a symlink somewhere within $PATH if it's used often.
