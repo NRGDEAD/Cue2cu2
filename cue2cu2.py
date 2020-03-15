@@ -111,6 +111,7 @@ parser.add_argument("-nc","--nocompat", action="store_true", help="Disables comp
 parser.add_argument("-c","--compat", action="store_true",  help="Enables compatibility mode, aims to be bit-identical to what Systems Console would produce (default)")
 parser.add_argument("-1","--stdout", action="store_true",  help="Output to stdout instead of a CU2 file named after the binary image file")
 parser.add_argument("-s","--size", type=int, help="Manually specify binary filesize in bytes instead of obtaining it from the binary file")
+parser.add_argument("-n","--name", type=str, help="Specify output filename instead of obtaining it from the cue sheet")
 parser.add_argument("-f","--format", type=int, help="Specify CU2 format revision: 1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7), 2 for 2.8 and probably later versions (default: 2)")
 parser.add_argument("-o","--offset", type=str, help="Specify timecode offset for tracks and track end. Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74). Example: -o=-00:13:37. Note: resulting output range is limited to 00:00:00 - 99:59:74")
 parser.add_argument("cuesheet")
@@ -146,6 +147,12 @@ if args.size:
 	filesize = int(args.size)
 else:
 	filesize = bool(False)
+
+# Do we have an output filename? If not, we'll think about one later
+if args.name:
+	cu2sheet = args.name
+else:
+	cu2sheet = bool(False)
 
 # Do we want to apply an offset to the timecodes?
 if args.offset:
@@ -300,10 +307,15 @@ output = output+"\r\ntrk end   "+track_end
 if compatibility_mode == False:
 	output = output + "\r\n"
 
+# We are now ready to output our CU2 sheet
 if stdout == True:
+	if compatibility_mode == True:
+		warning("Piping stdout to a file will add a proper linebreak to the last line. While not a problem per se, the CU2 sheet will not be bit identical to Systems Console output")
 	print(output)
 else:
-	cu2sheet = binaryfile[::-1][4:][::-1]+".cu2"
+	# Unless an output file name was specified, derive it from the binary file's filename
+	if not cu2sheet:
+		cu2sheet = binaryfile[::-1][4:][::-1]+".cu2"
 	try:
 		cu2file = open(cu2sheet,"wb")
 		cu2file.write(output.encode())
