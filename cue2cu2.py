@@ -92,11 +92,18 @@ def timecode_substraction(timecode, offset):
 # Function to throw an error and exit when something went wrong
 def error(message):
 	if message:
-		print("Cue2cu2 error: "+message+".", file=sys.stderr)
+		print("Cue2cu2: Error while processing "+cuesheet+": "+message+".", file=sys.stderr)
 		sys.exit(-1)
 	else:
-		print("Cue2cu2 error.", file=sys.stderr)
+		print("Cue2cu2: Error while processing "+cuesheet+".", file=sys.stderr)
 		sys.exit(-1)
+
+# Function to warn about something, but continue
+def warning(message):
+	if message:
+		print("Cue2cu2: Warning while processing "+cuesheet+": "+message+".", file=sys.stderr)
+	else:
+		print("Cue2cu2: Undefined warning while processing "+cuesheet+".", file=sys.stderr)
 
 # Parsing arguments with argparse
 parser = argparse.ArgumentParser(description="Cue2cu2 converts a cue sheet to CU2 format")
