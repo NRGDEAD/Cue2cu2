@@ -70,18 +70,18 @@ Size is not shifted +2 seconds anymore and track end is shifted +2 compared to s
 #### Comparison
 Here are the CU2 sheets for Euro Demo German 04 in both formats, compared via diff.
 ```
-Format revision 1			Format revision 2
+Format revision 1               Format revision 2
 --------------------------------------------------
-ntracks 4				ntracks 4
-size      38:02:32	|	size      38:00:32
-data1     00:02:00		data1     00:02:00
-				>	pregap02  29:03:11
-track02   29:05:11		track02   29:05:11
-				>	pregap03  32:53:36
-track03   32:55:36		track03   32:55:36
-				>	pregap04  34:50:23
-track04   34:52:23		track04   34:52:23
-trk end   38:06:32	|	trk end   38:02:32
+ntracks 4                       ntracks 4
+size      38:02:32      |       size      38:00:32
+data1     00:02:00              data1     00:02:00
+                        >       pregap02  29:03:11
+track02   29:05:11              track02   29:05:11
+                        >       pregap03  32:53:36
+track03   32:55:36              track03   32:55:36
+                        >       pregap04  34:50:23
+track04   34:52:23              track04   34:52:23
+trk end   38:06:32      |       trk end   38:02:32
 ```
 ## Multi-bin images
 Multi-bin images, a cue sheet referencing multiple bin files or even Wave, FLAC or other formats, are not supported. These need to be converted to monolithic, or single-bin, images first. This can be done with [binmerge](https://github.com/putnam/binmerge) in most simple cases or a combination of cdemu and cdrdao in more advanced cases (for example, when using images with FLAC or MP3 audio). Please refer to the documentation of those programs for more information.
