@@ -248,6 +248,7 @@ if offset_supplied == bool(True):
 output = output+"data1     "+data1+"\r\n"
 
 # Get the track and pregap lengths
+pregap_command_used_before = bool(False) # In case we later find the PREGAP command, which would be bad
 for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 	# Find current track number in cuesheet_content
 	current_track_in_cuesheet = -1;
@@ -268,6 +269,25 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 			elif offset_mode_is_add == bool(False):
 				pregap_position = timecode_substraction(track_position, offset_timecode)
 		output = output+"pregap"+str(track).zfill(2)+"  "+pregap_position+"\r\n"
+	# Check if this cue sheet uses the PREGAP command, which is bad. We can continue, but...
+	elif re.compile(".*[Pp][Rr][Ee][Gg][Aa][Pp].*").match(cuesheet_content[current_track_in_cuesheet+1]):
+		if pregap_command_used_before == bool(False):
+			warning("The PREGAP command is used for track "+str(track)+", which requires the software to insert data into the image or disc. This is not supported by Cue2cu2. The pregap will be ignored and a zero length pregap will be noted in the CU2 sheet in order to continue, but the resulting bin/CU2 set might not work as expected or not at all. If possible, please try a Redump compatible version of this image")
+			pregap_command_used_before = bool(True)
+		elif pregap_command_used_before == bool(True):
+			warning("The PREGAP command is used for track "+str(track)+", too.")
+		if re.compile(".*[Ii][Nn][Dd][Ee][Xx] 0?1.*").match(cuesheet_content[current_track_in_cuesheet+2]):
+			pregap_position = cuesheet_content[current_track_in_cuesheet+2][::-1][:8][::-1][:9]
+			if compatibility_mode == True:
+				# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
+				pregap_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(pregap_position,"00:02:00")))
+			# Apply offset if supplied
+			if offset_supplied == bool(True):
+				if offset_mode_is_add == bool(True):
+					pregap_position = timecode_addition(track_position, offset_timecode)
+				elif offset_mode_is_add == bool(False):
+					pregap_position = timecode_substraction(track_position, offset_timecode)
+			output = output+"pregap"+str(track).zfill(2)+"  "+pregap_position+"\r\n"
 	elif format_revision == int(2):
 		error("Could not find pregap position (index 00) for track "+str(track))
 	# Else-If is it index 01? If so, output track start, or get it from the following line
