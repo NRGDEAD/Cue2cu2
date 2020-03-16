@@ -26,13 +26,15 @@ Disables compatibility mode, produces a CU2 sheet without offset correction.
 #### -c, --compat
 Enables compatibility mode, aims to be bit-identical to what Systems Console would produce. This is the default mode.
 #### -1, --stdout
-Output to stdout instead of a CU2 file named after the binary image file
+Output to stdout instead of a CU2 file named after the binary image file.
 #### -s SIZE, --size SIZE
-Manually specify binary filesize in bytes instead of obtaining it from the binary file
+Manually specify binary filesize in bytes instead of obtaining it from the binary file.
+#### -n NAME, --name NAME
+Override the automatically determined output filename.
 #### -f FORMAT, --format FORMAT
 Specify CU2 format revision:\
-1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7)\
-2 for 2.8 and probably later versions (default)
+1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7).\
+2 for 2.8 and probably later versions (default.)
 #### -o OFFSET, --offset OFFSET
 Specify timecode offset for tracks and track end.\
 Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74).\
@@ -59,10 +61,29 @@ The CU2 format was designed by CybDyn Systems specifically for use with the PSIO
 A key difference is that with cue sheets, timecode 00:00:00 refers to the first position after the lead-in/TOC, which is two seconds or 150 sectors long. While with the CU2 format, it refers to the absolute first sector. Thus, at first glance, it appears that CU2 sheets are shifted +2 seconds. This is not the case; both cue and CU2 sheet notations refer to the same physical sectors.\
 The track end includes an additional two seconds for the lead-out.
 #### Revision 1 - Systems Console up to 2.4 (and sort of 2.5 to 2.7)
-The track end is shifted an additional +2 for pregaps and lead-out respectively. With this format, the PSIO always assumes 2 second pregaps, which is inaccurate for a few titles.
+With this format, the PSIO always assumes 2 second pregaps, which is inaccurate for a few titles.
+Size is shifted +2 seconds for the lead-in.
+The track end is shifted an additional +4 seconds compared to size, +6 in total.
 #### Revision 2 - Systems Console 2.8 and later
 The new revision includes a second line per track for the pregaps; Supported by PSIO firmware 2.6.11 and onwards, pregap lengths are now always respected.
-### Multi-bin images
+Size is not shifted +2 seconds anymore and track end is shifted +2 compared to size.
+#### Comparison
+Here are the CU2 sheets for Euro Demo German 04 in both formats, compared via diff.
+```
+Format revision 1		Format revision 2
+--------------------------------------------------
+ntracks 4			ntracks 4
+size      38:02:32	|	size      38:00:32
+data1     00:02:00		data1     00:02:00
+			>	pregap02  29:03:11
+track02   29:05:11		track02   29:05:11
+			>	pregap03  32:53:36
+track03   32:55:36		track03   32:55:36
+			>	pregap04  34:50:23
+track04   34:52:23		track04   34:52:23
+trk end   38:06:32	|	trk end   38:02:32
+```
+## Multi-bin images
 Multi-bin images, a cue sheet referencing multiple bin files or even Wave, FLAC or other formats, are not supported. These need to be converted to monolithic, or single-bin, images first. This can be done with [binmerge](https://github.com/putnam/binmerge) in most simple cases or a combination of cdemu and cdrdao in more advanced cases (for example, when using images with FLAC or MP3 audio). Please refer to the documentation of those programs for more information.
 ## License
 Copyright 2019-2020 NRGDEAD
