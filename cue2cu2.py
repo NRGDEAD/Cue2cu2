@@ -270,7 +270,7 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 				pregap_position = timecode_substraction(track_position, offset_timecode)
 		output = output+"pregap"+str(track).zfill(2)+"  "+pregap_position+"\r\n"
 	# Check if this cue sheet uses the PREGAP command, which is bad. We can continue, but...
-	elif re.compile(".*[Pp][Rr][Ee][Gg][Aa][Pp].*").match(cuesheet_content[current_track_in_cuesheet+1]):
+	elif re.compile(".*[Pp][Rr][Ee][Gg][Aa][Pp].*").match(cuesheet_content[current_track_in_cuesheet+1]) and format_revision == int(2):
 		if pregap_command_used_before == bool(False):
 			warning("The PREGAP command is used for track "+str(track)+", which requires the software to insert data into the image or disc. This is not supported by Cue2cu2. The pregap will be ignored and a zero length pregap will be noted in the CU2 sheet in order to continue, but the resulting bin/CU2 set might not work as expected or not at all. If possible, please try a Redump compatible version of this image")
 			pregap_command_used_before = bool(True)
