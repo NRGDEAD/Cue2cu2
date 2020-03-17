@@ -265,9 +265,9 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 		# Apply offset if supplied
 		if offset_supplied == bool(True):
 			if offset_mode_is_add == bool(True):
-				pregap_position = timecode_addition(track_position, offset_timecode)
+				pregap_position = timecode_addition(pregap_position, offset_timecode)
 			elif offset_mode_is_add == bool(False):
-				pregap_position = timecode_substraction(track_position, offset_timecode)
+				pregap_position = timecode_substraction(pregap_position, offset_timecode)
 		output = output+"pregap"+str(track).zfill(2)+"  "+pregap_position+"\r\n"
 	# Check if this cue sheet uses the PREGAP command, which is bad. We can continue, but...
 	elif re.compile(".*[Pp][Rr][Ee][Gg][Aa][Pp].*").match(cuesheet_content[current_track_in_cuesheet+1]) and format_revision == int(2):
