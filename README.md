@@ -55,7 +55,7 @@ This mode will probably not work correctly on either PSIO firmware revision as o
 #### Selecting a mode
 There are two switches to toggle compatibility mode either on or off in case somebody wants to use Cue2cu2 within a script or workflow. Using neither will default to compatibility mode.
 ### Offset
-It is possible to apply an additional offset. This will neither disable nor enable compatibility mode, but is applied after applying the compatibility offset correction to each audio track start, pregap and the last track's end values. This option is for user experiments as well.
+It is possible to apply an additional offset. This will neither disable nor enable compatibility mode, but is applied after applying the compatibility offset correction to the data track start, each audio track start, pregap and the last track's end values. This option is for user experiments as well.
 ### The CU2 Format
 The CU2 format was designed by CybDyn Systems specifically for use with the PSIO. The advantages over cue sheets from the PSIO's perspective are a simpler file structure and less format dialects.\
 A key difference is that with cue sheets, timecode 00:00:00 refers to the first position after the lead-in/TOC, which is two seconds or 150 sectors long. While with the CU2 format, it refers to the absolute first sector. Thus, at first glance, it appears that CU2 sheets are shifted +2 seconds. This is not the case; both cue and CU2 sheet notations refer to the same physical sectors.\
