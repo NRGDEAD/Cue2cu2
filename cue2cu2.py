@@ -116,7 +116,7 @@ parser.add_argument("-n","--name", type=str, help="Specify output filename inste
 parser.add_argument("-o","--offset", type=str, help="Specify timecode offset for audio tracks and track end. Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74). Example: -o=-00:13:37. Note: resulting output range is limited to 00:00:00 - 99:59:74")
 parser.add_argument("-os","--offset-select", type=str, help="Select the variables the offset will be applied to instead of the default audio tracks, pregaps, and track end only. Capitalization and order is arbitrary. Variables are represented by single letters: A (audio tracks), P (pregaps), E (track end), S (size), D (data1). Example to select everything: -os PASED")
 parser.add_argument("-1","--stdout", action="store_true",  help="Output to stdout instead of a CU2 file named after the binary image file")
-parser.add_argument("-q","--quiet", action="store_true",  help="Supress warning messages")
+parser.add_argument("-q","--quiet", action="store_true",  help="Suppress warning messages")
 parser.add_argument("cuesheet")
 args = parser.parse_args()
 
