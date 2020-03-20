@@ -42,7 +42,7 @@ Example:
 ```
 Note: resulting output range is limited to 00:00:00 - 99:59:74 and will be clipped if either boundary is crossed.
 #### -os OFFSET_SELECT, --offset-select OFFSET_SELECT
-Select the variables the offset will be applied to instead of the default audio tracks and track end only. Capitalization and order is arbitrary. Variables are represented by single letters: A (audio tracks and pregap), E (track end), S (size), D (data1). Example to select everything: -os DAES
+Select the variables the offset will be applied to instead of the default audio tracks, pregaps, and track end only. Capitalization and order is arbitrary. Variables are represented by single letters: A (audio tracks), P (pregaps), E (track end), S (size), D (data1). Example to select everything: -os PASED
 #### -1, --stdout
 Output to stdout instead of a CU2 file named after the binary image file.
 #### -q, --quiet
