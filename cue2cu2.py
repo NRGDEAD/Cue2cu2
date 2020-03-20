@@ -114,7 +114,7 @@ parser.add_argument("-f","--format", type=int, help="Specify CU2 format revision
 parser.add_argument("-s","--size", type=int, help="Manually specify binary filesize in bytes instead of obtaining it from the binary file")
 parser.add_argument("-n","--name", type=str, help="Specify output filename instead of obtaining it from the cue sheet")
 parser.add_argument("-o","--offset", type=str, help="Specify timecode offset for audio tracks and track end. Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74). Example: -o=-00:13:37. Note: resulting output range is limited to 00:00:00 - 99:59:74")
-parser.add_argument("-os","--offset-select", type=str, help="Select the variables the offset will be applied to instead of the default \"AE\". Capitalization and order is arbitrary. Variables are represented by single letters: A (audio tracks and pregap), E (track end), S (size), D (data1). Example to select everything: -os DAES")
+parser.add_argument("-os","--offset-select", type=str, help="Select the variables the offset will be applied to instead of the default audio tracks and track end only. Capitalization and order is arbitrary. Variables are represented by single letters: A (audio tracks and pregap), E (track end), S (size), D (data1). Example to select everything: -os DAES")
 parser.add_argument("-1","--stdout", action="store_true",  help="Output to stdout instead of a CU2 file named after the binary image file")
 parser.add_argument("-q","--quiet", action="store_true",  help="Supress warning messages")
 parser.add_argument("cuesheet")
@@ -207,7 +207,7 @@ if args.offset_select:
 else: # The default values
 	offset_data1 = bool(False)
 	offset_audio = bool(True)
-	offset_end = bool(False)
+	offset_end = bool(True)
 	offset_size = bool(False)
 
 # Now, onto the actual work
