@@ -21,20 +21,18 @@ cue2cu2.py [options] cuesheet
 ## Optional arguments
 #### -h, --help
 show a help message and exit.
-#### -nc, --nocompat
-Disables compatibility mode, produces a CU2 sheet without offset correction.
-#### -c, --compat
-Enables compatibility mode, aims to be bit-identical to what Systems Console would produce. This is the default mode.
-#### -1, --stdout
-Output to stdout instead of a CU2 file named after the binary image file.
-#### -s SIZE, --size SIZE
-Manually specify binary filesize in bytes instead of obtaining it from the binary file.
-#### -n NAME, --name NAME
-Override the automatically determined output filename.
 #### -f FORMAT, --format FORMAT
 Specify CU2 format revision:\
 1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7).\
 2 for 2.8 and probably later versions (default.)
+#### -c, --compat
+Enables compatibility mode, aims to be bit-identical to what Systems Console would produce. This is the default mode.
+#### -nc, --nocompat
+Disables compatibility mode, produces a CU2 sheet without offset correction.
+#### -s SIZE, --size SIZE
+Manually specify binary filesize in bytes instead of obtaining it from the binary file.
+#### -n NAME, --name NAME
+Override the automatically determined output filename.
 #### -o OFFSET, --offset OFFSET
 Specify timecode offset for tracks and track end.\
 Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74).\
@@ -43,6 +41,12 @@ Example:
 -o=-00:13:37
 ```
 Note: resulting output range is limited to 00:00:00 - 99:59:74 and will be clipped if either boundary is crossed.
+#### -os OFFSET_SELECT, --offset-select OFFSET_SELECT
+Select the variables the offset will be applied to instead of the default audio only. Capitalization and order is arbitrary. Variables are represented by single letters: A (audio tracks and pregap), E (track end), S (size), D (data1). Example to select everything: -os DAES
+#### -1, --stdout
+Output to stdout instead of a CU2 file named after the binary image file.
+#### -q, --quiet
+Supress warning messages that don't hinder the program from continuing.
 ## Output and compatibility
 ### Modes
 #### Compatibility mode

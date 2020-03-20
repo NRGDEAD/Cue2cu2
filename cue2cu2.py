@@ -100,22 +100,28 @@ def error(message):
 
 # Function to warn about something, but continue
 def warning(message):
-	if message:
-		print("Cue2cu2: Warning while processing "+cuesheet+": "+message+".", file=sys.stderr)
-	else:
-		print("Cue2cu2: Undefined warning while processing "+cuesheet+".", file=sys.stderr)
+	if args.quiet == False:
+		if message:
+			print("Cue2cu2: Warning while processing "+cuesheet+": "+message+".", file=sys.stderr)
+		else:
+			print("Cue2cu2: Undefined warning while processing "+cuesheet+".", file=sys.stderr)
 
 # Parsing arguments with argparse
 parser = argparse.ArgumentParser(description="Cue2cu2 converts a cue sheet to CU2 format")
-parser.add_argument("-nc","--nocompat", action="store_true", help="Disables compatibility mode, produces a CU2 sheet without offset correction. Included for user experiments")
 parser.add_argument("-c","--compat", action="store_true",  help="Enables compatibility mode, aims to be bit-identical to what Systems Console would produce (default)")
-parser.add_argument("-1","--stdout", action="store_true",  help="Output to stdout instead of a CU2 file named after the binary image file")
+parser.add_argument("-nc","--nocompat", action="store_true", help="Disables compatibility mode, produces a CU2 sheet without offset correction. Included for user experiments")
+parser.add_argument("-f","--format", type=int, help="Specify CU2 format revision: 1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7), 2 for 2.8 and probably later versions (default: 2)")
 parser.add_argument("-s","--size", type=int, help="Manually specify binary filesize in bytes instead of obtaining it from the binary file")
 parser.add_argument("-n","--name", type=str, help="Specify output filename instead of obtaining it from the cue sheet")
-parser.add_argument("-f","--format", type=int, help="Specify CU2 format revision: 1 for Systems Console up to 2.4 (and sort of 2.5 to 2.7), 2 for 2.8 and probably later versions (default: 2)")
-parser.add_argument("-o","--offset", type=str, help="Specify timecode offset for tracks and track end. Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74). Example: -o=-00:13:37. Note: resulting output range is limited to 00:00:00 - 99:59:74")
+parser.add_argument("-o","--offset", type=str, help="Specify timecode offset for audio tracks and track end. Format: [+/-]MM:SS:ss, as in Minutes (00-99), Seconds (00-59), sectors (00-74). Example: -o=-00:13:37. Note: resulting output range is limited to 00:00:00 - 99:59:74")
+parser.add_argument("-os","--offset-select", type=str, help="Select the variables the offset will be applied to instead of the default \"AE\". Capitalization and order is arbitrary. Variables are represented by single letters: A (audio tracks and pregap), E (track end), S (size), D (data1). Example to select everything: -os DAES")
+parser.add_argument("-1","--stdout", action="store_true",  help="Output to stdout instead of a CU2 file named after the binary image file")
+parser.add_argument("-q","--quiet", action="store_true",  help="Supress warning messages")
 parser.add_argument("cuesheet")
 args = parser.parse_args()
+
+# Make this a little more handy
+cuesheet = args.cuesheet
 
 # Configure compatibility mode
 compatibility_mode = bool(True) # Default value
@@ -174,8 +180,35 @@ if args.offset:
 else:
 	offset_supplied = bool(False)
 
-# Make this a little more handy
-cuesheet = args.cuesheet
+# "Decode" the variable selection string and throw an error if there's something unexpected in it
+if args.offset_select:
+	if re.compile("^[DdAaEeSs]{1,4}$").match(args.offset_select) and offset_supplied == True:
+		# Look for individual letters and set variables accordingly
+		if re.compile(".*[Dd].*").match(args.offset_select):
+			offset_data1 = bool(True)
+		else:
+			offset_data1 = bool(False)
+		if re.compile(".*[Aa].*").match(args.offset_select):
+			offset_audio = bool(True)
+		else:
+			offset_audio = bool(False)
+		if re.compile(".*[Ee].*").match(args.offset_select):
+			offset_end = bool(True)
+		else:
+			offset_end = bool(False)
+		if re.compile(".*[Ss].*").match(args.offset_select):
+			offset_size = bool(True)
+		else:
+			offset_size = bool(False)
+	elif offset_supplied == False:
+		error("Offset selection supplied but no offset")
+	else:
+		error("Badly formatted offset selection string. Accepted are only the letters A, E, S, and D")
+else: # The default values
+	offset_data1 = bool(False)
+	offset_audio = bool(True)
+	offset_end = bool(False)
+	offset_size = bool(False)
 
 # Now, onto the actual work
 
@@ -224,13 +257,19 @@ for line in cuesheet_content:
 output = output+"ntracks "+str(ntracks)+"\r\n"
 
 # Get the total runtime/size
-if not filesize == bool(False):
+if not filesize == False:
 	size = convert_sectors_to_timecode(convert_bytes_to_sectors(filesize))
 else:
 	size = convert_sectors_to_timecode(convert_filesize_to_sectors(binaryfile))
 # Add the two seconds for compatibility if needed
 if compatibility_mode == True and format_revision == int(1):
 	size = timecode_addition(size,"00:02:00")
+# Apply offset if supplied
+if offset_supplied == True and offset_size == True:
+	if offset_mode_is_add == True:
+		size = timecode_addition(size, offset_timecode)
+	elif offset_mode_is_add == False:
+		size = timecode_substraction(size, offset_timecode)
 
 output = output+"size      "+size+"\r\n"
 
@@ -240,10 +279,10 @@ data1 = "00:00:00"
 if compatibility_mode == True:
 	data1 = timecode_addition(data1,"00:02:00")
 # Apply offset if supplied
-if offset_supplied == bool(True):
-	if offset_mode_is_add == bool(True):
+if offset_supplied == True and offset_data1 == True:
+	if offset_mode_is_add == True:
 		data1 = timecode_addition(data1, offset_timecode)
-	elif offset_mode_is_add == bool(False):
+	elif offset_mode_is_add == False:
 		data1 = timecode_substraction(data1, offset_timecode)
 output = output+"data1     "+data1+"\r\n"
 
@@ -263,18 +302,18 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 			# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
 			pregap_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(pregap_position,"00:02:00")))
 		# Apply offset if supplied
-		if offset_supplied == bool(True):
-			if offset_mode_is_add == bool(True):
+		if offset_supplied == True and offset_audio:
+			if offset_mode_is_add == True:
 				pregap_position = timecode_addition(pregap_position, offset_timecode)
-			elif offset_mode_is_add == bool(False):
+			elif offset_mode_is_add == False:
 				pregap_position = timecode_substraction(pregap_position, offset_timecode)
 		output = output+"pregap"+str(track).zfill(2)+"  "+pregap_position+"\r\n"
 	# Check if this cue sheet uses the PREGAP command, which is bad. We can continue, but...
 	elif re.compile(".*[Pp][Rr][Ee][Gg][Aa][Pp].*").match(cuesheet_content[current_track_in_cuesheet+1]) and format_revision == int(2):
-		if pregap_command_used_before == bool(False):
+		if pregap_command_used_before == False:
 			warning("The PREGAP command is used for track "+str(track)+", which requires the software to insert data into the image or disc. This is not supported by Cue2cu2. The pregap will be ignored and a zero length pregap will be noted in the CU2 sheet in order to continue, but the resulting bin/CU2 set might not work as expected or not at all. If possible, please try a Redump compatible version of this image")
 			pregap_command_used_before = bool(True)
-		elif pregap_command_used_before == bool(True):
+		elif pregap_command_used_before == True:
 			warning("The PREGAP command is used for track "+str(track)+", too.")
 		if re.compile(".*[Ii][Nn][Dd][Ee][Xx] 0?1.*").match(cuesheet_content[current_track_in_cuesheet+2]):
 			pregap_position = cuesheet_content[current_track_in_cuesheet+2][::-1][:8][::-1][:9]
@@ -282,10 +321,10 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 				# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
 				pregap_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(pregap_position,"00:02:00")))
 			# Apply offset if supplied
-			if offset_supplied == bool(True):
-				if offset_mode_is_add == bool(True):
+			if offset_supplied == True and offset_audio == True:
+				if offset_mode_is_add == True:
 					pregap_position = timecode_addition(track_position, offset_timecode)
-				elif offset_mode_is_add == bool(False):
+				elif offset_mode_is_add == False:
 					pregap_position = timecode_substraction(track_position, offset_timecode)
 			output = output+"pregap"+str(track).zfill(2)+"  "+pregap_position+"\r\n"
 	elif format_revision == int(2):
@@ -301,10 +340,10 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 		# Add the famous two second offset for PSIO and convert to alternative notation used by Systems Console for tracks
 		track_position = convert_sectors_to_timecode_with_alternative_notation(convert_timecode_to_sectors(timecode_addition(track_position,"00:02:00")))
 	# Apply offset if supplied
-	if offset_supplied == bool(True):
-		if offset_mode_is_add == bool(True):
+	if offset_supplied == True and offset_audio == True:
+		if offset_mode_is_add == True:
 			track_position = timecode_addition(track_position, offset_timecode)
-		elif offset_mode_is_add == bool(False):
+		elif offset_mode_is_add == False:
 			track_position = timecode_substraction(track_position, offset_timecode)
 	output = output+"track"+str(track).zfill(2)+"   "+track_position+"\r\n"
 
@@ -316,10 +355,10 @@ elif compatibility_mode == True and format_revision == int(2):
 else:
 	track_end = size
 # Apply offset if supplied
-if offset_supplied == bool(True):
-	if offset_mode_is_add == bool(True):
+if offset_supplied == True and offset_end == True:
+	if offset_mode_is_add == True:
 		track_end = timecode_addition(track_end, offset_timecode)
-	elif offset_mode_is_add == bool(False):
+	elif offset_mode_is_add == False:
 		track_end = timecode_substraction(track_end, offset_timecode)
 output = output+"\r\ntrk end   "+track_end
 
