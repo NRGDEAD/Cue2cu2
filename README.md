@@ -46,7 +46,7 @@ Select the variables the offset will be applied to instead of the default audio 
 #### -1, --stdout
 Output to stdout instead of a CU2 file named after the binary image file.
 #### -q, --quiet
-Supress warning messages that don't hinder the program from continuing.
+Supress warning messages on inconveniences that don't hinder the program from continuing but might negatively affect the result.
 ## Output and compatibility
 ### Modes
 #### Compatibility mode
