@@ -325,7 +325,7 @@ for track in range(2, ntracks+1): # Why do I have to +1 this? Python is weird
 			warning("The PREGAP command is used for track "+str(track)+", which requires the software to insert data into the image or disc. This is not supported by Cue2cu2. The pregap will be ignored and a zero length pregap will be noted in the CU2 sheet in order to continue, but the resulting bin/CU2 set might not work as expected or not at all. If possible, please try a Redump compatible version of this image")
 			pregap_command_used_before = bool(True)
 		elif pregap_command_used_before == True:
-			warning("The PREGAP command is used for track "+str(track)+", too.")
+			warning("The PREGAP command is also used for track "+str(track)+".")
 		if re.compile(".*[Ii][Nn][Dd][Ee][Xx] 0?1.*").match(cuesheet_content[current_track_in_cuesheet+2]):
 			pregap_position = cuesheet_content[current_track_in_cuesheet+2][::-1][:8][::-1][:9]
 			if compatibility_mode == True:
